@@ -54,7 +54,11 @@ Resources:
       VpcId: !Ref MyTestVPC
 
 # SubnetRouteTableAssociationA
-
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref MyTestVPC
 # Route Table Internet Gateway
   PubRouteA:
     Type: AWS::EC2::RouteTable
@@ -82,16 +86,16 @@ Resources:
 
 
   NatGatewayEIP:
-    Type: AWS::EC2:EIP
+    Type: AWS::EC2::EIP
     DependsOn: InternetGatewayAttachment
     Properties:
-      Domain vpc
+      Domain: vpc
 
   NatGateway:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt NatGatewayEIP.AllocationId
-      SubnetId: !Ref PublicSubnet1
+      SubnetId: !Ref PubSubnetA
 
 
   PvtSubnet:

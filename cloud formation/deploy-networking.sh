@@ -9,7 +9,7 @@ if [[ -z "${STUDENT_NAME}" ]]; then
 fi
 
 readonly STACK_NAME="${STUDENT_NAME}-networking"
-readonly TEMPLATE_FILE="$(dirname "${BASH_SOURCE[0]}")/template/networking.yml"
+readonly TEMPLATE_FILE="$(dirname "${BASH_SOURCE[0]}")/template/network-config.yml"
 readonly AWS_DEFAULT_REGION="eu-west-2"
 
 aws cloudformation deploy \
