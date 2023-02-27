@@ -1,0 +1,127 @@
+Description: Networking architecture
+
+Parameters:
+  VpcCidr:
+    Description: CIDR block for the VPC
+    Type: String
+    Default: 10.0.0.0/22
+  StudentName:
+    Type: String
+  
+  PubSubnetACidr:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
+    Type: String
+    Default: 10.0.0.0/24
+
+  PvtSubnetCidr:
+    Description: Please enter the IP range (CIDR notation) for the private subnet in the first Availability Zone
+    Type: String
+    Default: 10.0.2.0/24
+
+Resources:
+# VPC
+  MyTestVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      Tags: 
+        - Key: Name
+          Value: !Sub "${StudentName}-vpc"
+
+# PubSubnetA
+  PubSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyTestVPC
+      CidrBlock: !Ref PubSubnetACidr
+      AvailabilityZone: "eu-west-2a"
+      Tags:
+        - Key: Name
+          Value: !Sub "${StudentName}-pub-subnet-a"
+  
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${StudentName}-igw"
+
+# VPC Gateway Attachement
+  VpcGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref MyTestVPC
+
+# SubnetRouteTableAssociationA
+
+# Route Table Internet Gateway
+  PubRouteA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${StudentName}-pub-route-a"
+      VpcId: !Ref MyTestVPC
+
+# Public Route
+  PublicRouteA:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGateway
+    Properties:
+       RouteTableId: !Ref PubRouteA
+       DestinationCidrBlock: 0.0.0.0/0
+       GatewayId: !Ref InternetGateway
+
+  PubSubnetRouteTableAssociationA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PubRouteA
+      SubnetId: !Ref PubSubnetA
+
+
+
+  NatGatewayEIP:
+    Type: AWS::EC2:EIP
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      Domain vpc
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayEIP.AllocationId
+      SubnetId: !Ref PublicSubnet1
+
+
+  PvtSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyTestVPC
+      CidrBlock: !Ref PvtSubnetCidr
+      AvailabilityZone: "eu-west-2a"
+      Tags:
+        - Key: Name
+          Value: !Sub "${StudentName}-pvt-subnet"
+
+  PvtRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${StudentName}-pvt-route"
+      VpcId: !Ref MyTestVPC    
+ 
+  PvtRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGateway
+    Properties:
+       RouteTableId: !Ref PvtRouteTable
+       DestinationCidrBlock: 0.0.0.0/0
+       GatewayId: !Ref NatGateway
+
+  PvtSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PvtRouteTable
+      SubnetId: !Ref PvtSubnet
