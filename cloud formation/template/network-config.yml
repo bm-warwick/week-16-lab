@@ -11,7 +11,7 @@ Parameters:
   PubSubnetACidr:
     Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
     Type: String
-    Default: 10.0.0.0/24
+    Default: 10.0.1.0/24
 
   PvtSubnetCidr:
     Description: Please enter the IP range (CIDR notation) for the private subnet in the first Availability Zone
@@ -74,7 +74,7 @@ Resources:
     DependsOn: InternetGateway
     Properties:
        RouteTableId: !Ref PubRouteA
-       DestinationCidrBlock: 0.0.0.0/0
+       DestinationCidrBlock: 0.0.0.0/16
        GatewayId: !Ref InternetGateway
 
   PubSubnetRouteTableAssociationA:
